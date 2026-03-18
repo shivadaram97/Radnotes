@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RadNotes</title>
+<meta name="description" content="Radiology clinical knowledge base — Signs, Pearls, Cases">
+<meta name="theme-color" content="#08111f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RadNotes">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08111f;--navy-mid:#0d1e36;--navy-card:#0f1d35;--navy-el:#162948;
+  --teal:#00c8e8;--teal-dim:#0099b8;--teal-faint:rgba(0,200,232,0.07);
+  --gold:#f5c043;--red:#e05c5c;--green:#3ecf8e;--purple:#a87de8;
+  --text:#c8d8ec;--text-dim:#6e8aaa;--text-faint:#3a5070;
+  --border:rgba(0,200,232,0.11);--border-mid:rgba(0,200,232,0.2);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:var(--navy);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,200,232,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,232,0.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--teal-dim);border-radius:2px;}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:200;background:rgba(8,17,31,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;height:54px;}
+.logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--teal);white-space:nowrap;}
+.logo b{color:var(--gold);font-weight:600;}
+.hdr-search{flex:1;position:relative;max-width:400px;}
+.hdr-search input{width:100%;background:var(--navy-el);border:1px solid var(--border);border-radius:7px;padding:7px 12px 7px 30px;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;transition:border .2s;}
+.hdr-search input:focus{border-color:var(--teal-dim);}
+.hdr-search input::placeholder{color:var(--text-faint);}
+.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:0.78rem;pointer-events:none;}
+.hdr-btns{display:flex;gap:6px;margin-left:auto;}
+.hbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:7px;border:none;font-family:'Outfit',sans-serif;font-size:0.79rem;font-weight:500;cursor:pointer;transition:all .15s;}
+.hbtn-teal{background:var(--teal);color:var(--navy);font-weight:600;}
+.hbtn-teal:hover{background:#1fd6f5;}
+.hbtn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+.hbtn-ghost:hover{border-color:var(--teal-dim);color:var(--teal);}
+.hbtn-gold{background:var(--gold);color:#08111f;font-weight:600;}
+.hbtn-red{background:rgba(224,92,92,.15);color:var(--red);border:1px solid rgba(224,92,92,.25);}
+
+/* FILTER BAR */
+.fbar{position:sticky;top:54px;z-index:190;background:rgba(8,17,31,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.chip{padding:4px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-family:'Outfit',sans-serif;font-size:0.77rem;cursor:pointer;transition:all .14s;white-space:nowrap;}
+.chip:hover,.chip.on{border-color:var(--teal);color:var(--teal);background:rgba(0,200,232,0.07);font-weight:600;}
+.chip-n{font-family:'JetBrains Mono',monospace;font-size:0.67rem;opacity:.65;margin-left:2px;}
+.fsep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+.fsel{background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:4px 9px;font-family:'Outfit',sans-serif;font-size:0.75rem;cursor:pointer;outline:none;}
+
+/* MAIN */
+.main{max-width:820px;margin:0 auto;padding:18px 14px 100px;position:relative;z-index:1;}
+
+/* STATS */
+.stats{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.sc{flex:1;min-width:90px;background:var(--navy-card);border:1px solid var(--border);border-radius:9px;padding:11px 13px;}
+.sc-v{font-family:'JetBrains Mono',monospace;font-size:1.35rem;color:var(--teal);}
+.sc-l{font-size:0.7rem;color:var(--text-dim);margin-top:2px;}
+
+/* REVISIT CARD (was OTD) */
+.otd{background:linear-gradient(135deg,rgba(245,192,67,.07),rgba(0,200,232,.05));border:1px solid rgba(245,192,67,.18);border-radius:9px;padding:11px 14px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s;}
+.otd:hover{border-color:rgba(245,192,67,.38);}
+.otd-txt{flex:1;}
+.otd-lbl{font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:1px;}
+.otd-t{font-size:0.85rem;font-weight:600;}
+.otd-s{font-size:0.7rem;color:var(--text-dim);margin-top:1px;}
+
+/* TOOLBAR */
+.tbar{display:flex;align-items:center;gap:7px;margin-bottom:12px;}
+.tbar-c{font-size:0.73rem;color:var(--text-faint);font-family:'JetBrains Mono',monospace;margin-right:auto;}
+
+/* CARDS */
+.grid{display:flex;flex-direction:column;gap:10px;}
+.ncard{background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .16s;position:relative;overflow:hidden;animation:fu .22s ease both;}
+.ncard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--cat-color,var(--teal));}
+.ncard:hover{border-color:var(--border-mid);transform:translateY(-1px);box-shadow:0 5px 20px rgba(0,200,232,.06);}
+@keyframes fu{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+.ncard-top{display:flex;align-items:flex-start;gap:8px;}
+.ncard-ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.ncard-meta{flex:1;}
+.ncard-title{font-size:.91rem;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px;}
+.bdgs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;}
+.b{padding:2px 6px;border-radius:3px;font-size:.63rem;font-weight:600;letter-spacing:.4px;text-transform:uppercase;}
+.bm{background:rgba(0,200,232,.1);color:var(--teal);}
+.bs{background:rgba(245,192,67,.1);color:var(--gold);}
+.br{background:rgba(110,138,170,.09);color:var(--text-dim);}
+.ncard-body{font-size:.81rem;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ncard-img{width:100%;max-height:130px;object-fit:cover;border-radius:6px;margin-top:9px;border:1px solid var(--border);}
+.ncard-foot{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:8px;border-top:1px solid var(--border);}
+.ncard-date{font-size:.67rem;color:var(--text-faint);}
+.ncard-acts{margin-left:auto;display:flex;gap:4px;opacity:0;transition:opacity .13s;}
+.ncard:hover .ncard-acts{opacity:1;}
+.ib{background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);border-radius:5px;width:25px;height:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.76rem;transition:all .12s;}
+.ib:hover{border-color:var(--teal-dim);color:var(--teal);}
+.ib.del:hover{border-color:var(--red);color:var(--red);}
+.ib.star-on{color:var(--gold);border-color:rgba(245,192,67,.35);background:rgba(245,192,67,.07);}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--text-faint);}
+.empty-ico{font-size:2.2rem;opacity:.3;margin-bottom:9px;}
+.empty h3{font-size:.9rem;color:var(--text-dim);margin-bottom:4px;}
+.empty p{font-size:.78rem;}
+.empty-btn{margin-top:12px;padding:8px 16px;border-radius:8px;background:var(--teal);color:var(--navy);font-weight:600;font-size:.79rem;cursor:pointer;border:none;font-family:'Outfit',sans-serif;}
+
+/* FAB */
+.fab{position:fixed;bottom:20px;right:16px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.fab-main{width:48px;height:48px;border-radius:50%;border:none;background:var(--teal);color:var(--navy);font-size:1.25rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,200,232,.32);display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.fab-main:hover{transform:scale(1.07);}
+.fab-row{display:flex;align-items:center;gap:7px;opacity:0;transform:translateY(5px);transition:all .17s;pointer-events:none;}
+.fab.open .fab-row{opacity:1;transform:translateY(0);pointer-events:all;}
+.fab-lbl{background:var(--navy-el);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;font-size:.73rem;white-space:nowrap;}
+.fab-mini{width:36px;height:36px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .13s;box-shadow:0 2px 10px rgba(0,0,0,.28);}
+.fm-g{background:var(--gold);color:#08111f;}
+.fm-b{background:#2a6ba5;color:#fff;}
+
+/* CAT */
+.c-sign {--cat-color:var(--teal); --cat-bg:rgba(0,200,232,.09);}
+.c-pearl{--cat-color:var(--gold); --cat-bg:rgba(245,192,67,.09);}
+.c-case {--cat-color:var(--green);--cat-bg:rgba(62,207,142,.09);}
+
+/* FULLSCREEN VIEW */
+.vfs{position:fixed;inset:0;z-index:500;background:var(--navy-mid);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .18s;overflow:hidden;}
+.vfs.open{opacity:1;pointer-events:all;}
+.v-topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(13,30,54,.97);}
+.v-cpill{padding:3px 9px;border-radius:11px;font-size:.67rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.v-pos{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text-faint);}
+.v-arrows{display:flex;gap:3px;margin-left:auto;}
+.varr{background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.82rem;transition:all .12s;}
+.varr:hover:not(:disabled){border-color:var(--teal-dim);color:var(--teal);}
+.varr:disabled{opacity:.22;cursor:default;}
+.vcls{background:transparent;border:none;color:var(--text-dim);font-size:1.05rem;cursor:pointer;padding:4px 6px;margin-left:4px;}
+.vcls:hover{color:var(--red);}
+.v-scroll{flex:1;overflow-y:auto;padding:18px 14px;}
+.v-inner{max-width:660px;margin:0 auto;}
+.v-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);line-height:1.3;margin-bottom:10px;}
+.v-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;}
+.v-body{font-size:.91rem;line-height:1.85;color:var(--text);background:var(--navy-el);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;}
+.v-imgs{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;}
+.v-img-wrap{display:flex;flex-direction:column;gap:5px;}
+.v-img{width:100%;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;}
+.v-img-lbl{font-size:.72rem;color:var(--text-faint);padding:2px 4px;text-align:center;}
+.swipe-hint{text-align:center;font-size:.67rem;color:var(--text-faint);padding:4px 0 2px;letter-spacing:.3px;}
+.v-actions{display:flex;gap:7px;padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;background:rgba(13,30,54,.97);flex-wrap:wrap;}
+@keyframes soL{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(-40px);}}
+@keyframes soR{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(40px);}}
+@keyframes siL{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
+@keyframes siR{from{opacity:0;transform:translateX(-50px);}to{opacity:1;transform:translateX(0);}}
+.ao-l{animation:soL .16s ease forwards;}
+.ao-r{animation:soR .16s ease forwards;}
+.ai-l{animation:siL .18s ease forwards;}
+.ai-r{animation:siR .18s ease forwards;}
+
+/* AI PANEL */
+.ai-panel{background:var(--navy-card);border:1px solid rgba(168,125,232,.2);border-radius:10px;margin-top:14px;overflow:hidden;}
+.ai-panel-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(168,125,232,.15);background:rgba(168,125,232,.05);}
+.ai-panel-title{font-size:.78rem;font-weight:600;color:var(--purple);letter-spacing:.3px;}
+.ai-disclaimer{font-size:.62rem;color:var(--text-faint);margin-left:auto;font-style:italic;}
+.ai-msgs{min-height:60px;max-height:320px;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:9px;}
+.ai-msg{font-size:.81rem;line-height:1.7;border-radius:7px;padding:9px 12px;max-width:96%;}
+.ai-msg.user{background:rgba(0,200,232,.07);border:1px solid rgba(0,200,232,.1);color:var(--text);align-self:flex-end;}
+.ai-msg.ai{background:rgba(168,125,232,.07);border:1px solid rgba(168,125,232,.12);color:var(--text);align-self:flex-start;}
+.ai-msg.err{background:rgba(224,92,92,.07);border:1px solid rgba(224,92,92,.15);color:var(--red);}
+.ai-msg.thinking{color:var(--text-faint);font-style:italic;}
+.ai-input-row{display:flex;gap:7px;padding:9px 14px;border-top:1px solid rgba(168,125,232,.12);}
+.ai-inp{flex:1;background:var(--navy-el);border:1px solid var(--border);border-radius:7px;padding:7px 11px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.82rem;outline:none;transition:border .16s;}
+.ai-inp:focus{border-color:rgba(168,125,232,.4);}
+.ai-inp::placeholder{color:var(--text-faint);}
+.ai-send{background:var(--purple);color:#fff;border:none;border-radius:7px;padding:7px 13px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .14s;}
+.ai-send:hover{background:#b98ef0;}
+.ai-send:disabled{opacity:.4;cursor:default;}
+.ai-no-key{padding:14px;font-size:.76rem;color:var(--text-faint);text-align:center;}
+.ai-no-key a{color:var(--purple);cursor:pointer;text-decoration:underline;}
+
+/* BROWSE */
+.bfs{position:fixed;inset:0;z-index:510;background:var(--navy-mid);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .18s;}
+.bfs.open{opacity:1;pointer-events:all;}
+.b-top{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.b-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--teal);}
+.b-inp{flex:1;background:var(--navy-el);border:1px solid var(--border);border-radius:7px;padding:7px 11px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.84rem;outline:none;transition:border .18s;}
+.b-inp:focus{border-color:var(--teal-dim);}
+.b-inp::placeholder{color:var(--text-faint);}
+.b-cats{display:flex;gap:5px;padding:7px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.b-cats::-webkit-scrollbar{display:none;}
+.b-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
+.brow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--navy-card);border:1px solid var(--border);cursor:pointer;transition:all .13s;}
+.brow:hover{border-color:var(--border-mid);}
+.brow-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.brow-body{flex:1;min-width:0;}
+.brow-t{font-size:.84rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brow-m{font-size:.67rem;color:var(--text-faint);margin-top:1px;}
+.b-foot{padding:9px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.b-count{font-size:.72rem;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
+
+/* EDITOR */
+.overlay{position:fixed;inset:0;z-index:600;background:rgba(4,10,20,.88);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .18s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--navy-mid);border:1px solid var(--border-mid);border-radius:13px;width:100%;max-width:640px;padding:22px;margin-top:18px;transform:translateY(-8px);transition:transform .2s;}
+.overlay.open .modal{transform:translateY(0);}
+.mhdr{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
+.mtitle{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--teal);}
+.mcls{margin-left:auto;background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .12s;}
+.mcls:hover{border-color:var(--red);color:var(--red);}
+.fg{display:flex;flex-direction:column;gap:12px;}
+.frow{display:flex;gap:9px;flex-wrap:wrap;}
+.fgi{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+.flbl{font-size:.68rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-faint);}
+.fi,.fsel,.fta{background:var(--navy-el);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 11px;font-family:'Outfit',sans-serif;font-size:.84rem;outline:none;transition:border .16s;width:100%;}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--teal-dim);}
+.fi::placeholder,.fta::placeholder{color:var(--text-faint);}
+.fta{resize:vertical;min-height:105px;line-height:1.6;}
+.fsel option{background:var(--navy-mid);}
+.etbar{display:flex;gap:3px;margin-bottom:3px;flex-wrap:wrap;}
+.tb{background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:3px 7px;font-size:.73rem;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .1s;}
+.tb:hover{border-color:var(--teal-dim);color:var(--teal);}
+.imgzone{border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all .16s;position:relative;}
+.imgzone:hover,.imgzone.drag{border-color:var(--teal-dim);background:var(--teal-faint);}
+.imgzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.imgzone-txt{font-size:.78rem;color:var(--text-faint);}
+.img-thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.img-thumb{position:relative;display:flex;flex-direction:column;gap:4px;width:90px;}
+.img-thumb img{width:90px;height:75px;object-fit:cover;border-radius:5px;border:1px solid var(--border);}
+.img-thumb-lbl{width:90px;background:var(--navy-el);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.68rem;outline:none;transition:border .15s;}
+.img-thumb-lbl:focus{border-color:var(--teal-dim);}
+.img-thumb-lbl::placeholder{color:var(--text-faint);}
+.img-del{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;}
+
+/* GRAM BAR — now used as fix-result bar */
+.gram-bar{display:none;align-items:center;gap:7px;padding:6px 10px;border-radius:6px;background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.18);font-size:.73rem;color:var(--green);}
+.gram-bar.show{display:flex;}
+
+/* FIX MENU */
+.fix-menu{position:absolute;background:var(--navy-mid);border:1px solid var(--border-mid);border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:700;padding:6px;min-width:200px;display:none;}
+.fix-menu.open{display:block;}
+.fix-item{padding:8px 12px;border-radius:6px;font-size:.8rem;cursor:pointer;color:var(--text-dim);transition:all .12s;display:flex;align-items:center;gap:8px;}
+.fix-item:hover{background:var(--teal-faint);color:var(--teal);}
+.fix-item span{font-size:.72rem;opacity:.6;}
+
+/* SETTINGS */
+.settings-panel{background:var(--navy-mid);border:1px solid var(--border-mid);border-radius:13px;width:100%;max-width:560px;padding:22px;margin-top:18px;}
+.srow{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}
+.slbl{font-size:.68rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-faint);}
+.sdesc{font-size:.71rem;color:var(--text-faint);margin-top:2px;}
+.skey-row{display:flex;gap:7px;}
+.skey-row .fi{font-family:'JetBrains Mono',monospace;font-size:.8rem;}
+.smodel{background:var(--navy-el);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;padding:6px 9px;font-family:'Outfit',sans-serif;font-size:.78rem;cursor:pointer;outline:none;width:100%;}
+
+/* IO */
+.io-cards{display:flex;gap:9px;flex-wrap:wrap;}
+.io-card{flex:1;min-width:150px;background:var(--navy-el);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all .16s;}
+.io-card:hover{border-color:var(--teal-dim);background:var(--teal-faint);}
+.io-ico{font-size:1.7rem;margin-bottom:5px;}
+.io-t{font-size:.84rem;font-weight:600;margin-bottom:2px;}
+.io-d{font-size:.71rem;color:var(--text-faint);}
+
+/* TOAST */
+.toast{position:fixed;bottom:78px;right:14px;z-index:900;background:var(--navy-el);border:1px solid var(--border-mid);border-radius:8px;padding:9px 15px;font-size:.78rem;color:var(--text);box-shadow:0 5px 20px rgba(0,0,0,.4);transform:translateY(14px);opacity:0;transition:all .2s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+
+/* ZOOM */
+#zoom{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;cursor:zoom-out;}
+#zoom img{max-width:95vw;max-height:90vh;border-radius:7px;}
+
+/* CONFIRM DIALOG */
+.cdlg-bg{position:fixed;inset:0;z-index:800;background:rgba(4,10,20,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .16s;}
+.cdlg-bg.open{opacity:1;pointer-events:all;}
+.cdlg{background:var(--navy-mid);border:1px solid var(--border-mid);border-radius:12px;padding:22px;max-width:340px;width:100%;text-align:center;}
+.cdlg-ico{font-size:1.8rem;margin-bottom:10px;}
+.cdlg-title{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+.cdlg-msg{font-size:.78rem;color:var(--text-dim);margin-bottom:18px;line-height:1.5;}
+.cdlg-btns{display:flex;gap:8px;justify-content:center;}
+
+@media(max-width:560px){
+  .hdr{padding:0 10px;gap:7px;}
+  .hbtn span{display:none;}
+  .hbtn{padding:6px 9px;}
+  .main{padding:12px 8px 100px;}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">Rad<b>Notes</b></div>
+  <div class="hdr-search"><span class="si">🔍</span><input id="srch" placeholder="Search…" oninput="renderNotes()"></div>
+  <div class="hdr-btns">
+    <button class="hbtn hbtn-ghost"  onclick="openBrowse()">📋 <span>Browse</span></button>
+    <button class="hbtn hbtn-gold"   onclick="surpriseMe()">🎲 <span>Surprise</span></button>
+    <button class="hbtn hbtn-ghost"  onclick="openIO()">💾</button>
+    <button class="hbtn hbtn-ghost"  onclick="openSettings()" title="Settings">⚙️</button>
+    <button class="hbtn hbtn-teal"   onclick="openEditor()">＋ <span>New</span></button>
+  </div>
+</header>
+
+<div class="fbar">
+  <button class="chip on" data-cat="all"   onclick="setCat('all',this)">All <span class="chip-n" id="cn-all"></span></button>
+  <button class="chip"    data-cat="sign"  onclick="setCat('sign',this)">🎯 Sign <span class="chip-n" id="cn-sign"></span></button>
+  <button class="chip"    data-cat="pearl" onclick="setCat('pearl',this)">💎 Pearl <span class="chip-n" id="cn-pearl"></span></button>
+  <button class="chip"    data-cat="case"  onclick="setCat('case',this)">🫁 Case <span class="chip-n" id="cn-case"></span></button>
+  <button class="chip"    data-cat="star"  onclick="setCat('star',this)">⭐ Starred <span class="chip-n" id="cn-star"></span></button>
+  <div class="fsep"></div>
+  <select class="fsel" id="modFil" onchange="renderNotes()"><option value="">Modality</option><option>CT</option><option>MRI</option><option>USG</option><option>XR</option><option>NM</option><option>Fluoro</option></select>
+  <select class="fsel" id="sysFil" onchange="renderNotes()"><option value="">System</option><option>Neuro</option><option>MSK</option><option>Chest</option><option>Abdomen</option><option>GU</option><option>Breast</option><option>Vascular</option><option>Paeds</option><option>H&N</option></select>
+</div>
+
+<main class="main">
+  <div id="otdWrap"></div>
+  <div class="stats" id="stats"></div>
+  <div class="tbar">
+    <span class="tbar-c" id="rcount"></span>
+    <select class="fsel" id="sortSel" onchange="renderNotes()">
+      <option value="new">Newest</option>
+      <option value="old">Oldest</option>
+      <option value="star">⭐ Starred first</option>
+      <option value="az">A→Z</option>
+    </select>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="fab" id="fab">
+  <div class="fab-row"><span class="fab-lbl">Surprise</span><button class="fab-mini fm-g" onclick="surpriseMe();closeFab()">🎲</button></div>
+  <div class="fab-row"><span class="fab-lbl">Browse</span><button class="fab-mini fm-b" onclick="openBrowse();closeFab()">📋</button></div>
+  <button class="fab-main" id="fabMain" onclick="toggleFab()">＋</button>
+</div>
+
+<!-- FULLSCREEN VIEW -->
+<div class="vfs" id="vfs">
+  <div class="v-topbar">
+    <div class="v-cpill" id="v-cpill"></div>
+    <div class="v-pos" id="v-pos"></div>
+    <div class="v-arrows">
+      <button class="varr" id="vPrev" onclick="vNav(-1)">←</button>
+      <button class="varr" id="vNext" onclick="vNav(1)">→</button>
+    </div>
+    <button class="vcls" onclick="closeView()">✕</button>
+  </div>
+  <div class="v-scroll">
+    <div class="v-inner" id="vInner">
+      <div class="v-title"  id="v-title"></div>
+      <div class="v-badges" id="v-badges"></div>
+      <div class="v-body"   id="v-body"></div>
+      <div class="v-imgs"   id="v-imgs"></div>
+      <div class="swipe-hint">← → to navigate through deck · wraps around</div>
+      <!-- AI PANEL -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="ai-panel-hdr">
+          <span style="font-size:1rem">🤖</span>
+          <span class="ai-panel-title">AI Assistant — Radiology</span>
+          <span class="ai-disclaimer">⚠️ Verify all answers in primary references</span>
+        </div>
+        <div class="ai-msgs" id="aiMsgs">
+          <div class="ai-msg thinking" id="aiWelcome">Ask anything — findings, DDx, anatomy, classifications, staging… Current note is shared as context. Answers are constrained to standard references (Dahnert, STATdx, ACR, Radiopaedia).</div>
+        </div>
+        <div class="ai-input-row" id="aiInputRow">
+          <input class="ai-inp" id="aiInp" placeholder="Ask a radiology question…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}">
+          <button class="ai-send" id="aiSendBtn" onclick="sendAI()">Send</button>
+        </div>
+        <div class="ai-no-key" id="aiNoKey" style="display:none">No Groq API key set. <a onclick="closeView();openSettings()">Open Settings</a> to add it.</div>
+      </div>
+    </div>
+  </div>
+  <div class="v-actions">
+    <button class="hbtn hbtn-ghost" id="v-star">⭐ Star</button>
+    <button class="hbtn hbtn-ghost" id="v-edit">✏️ Edit</button>
+    <button class="hbtn hbtn-red"   id="v-del">🗑 Delete</button>
+    <button class="hbtn hbtn-ghost" onclick="closeView()">Close</button>
+  </div>
+</div>
+
+<!-- BROWSE FULLSCREEN -->
+<div class="bfs" id="bfs">
+  <div class="b-top">
+    <div class="b-title">Browse Notes</div>
+    <input class="b-inp" id="bsrch" placeholder="Search…" oninput="renderBrowse()">
+    <button class="mcls" onclick="closeBrowse()">✕</button>
+  </div>
+  <div class="b-cats">
+    <button class="chip on" data-bcat="all"   onclick="setBCat('all',this)">All</button>
+    <button class="chip"    data-bcat="sign"  onclick="setBCat('sign',this)">🎯 Sign</button>
+    <button class="chip"    data-bcat="pearl" onclick="setBCat('pearl',this)">💎 Pearl</button>
+    <button class="chip"    data-bcat="case"  onclick="setBCat('case',this)">🫁 Case</button>
+  </div>
+  <div class="b-list" id="blist"></div>
+  <div class="b-foot">
+    <span class="b-count" id="bcount"></span>
+    <button class="hbtn hbtn-teal" onclick="openEditor();closeBrowse()">＋ New Note</button>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div class="overlay" id="edOv" onclick="ovClickEditor(event)">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle" id="edTitle">New Note</div><div class="mcls" onclick="closeEditorSafe()">✕</div></div>
+    <div class="fg">
+      <div class="fgi"><label class="flbl">Title *</label><input class="fi" id="fTitle" placeholder="e.g. Hampton's Hump — Pulmonary Embolism"></div>
+      <div class="frow">
+        <div class="fgi"><label class="flbl">Category</label>
+          <select class="fsel" id="fCat"><option value="sign">🎯 Sign</option><option value="pearl">💎 Pearl</option><option value="case">🫁 Case</option></select></div>
+        <div class="fgi"><label class="flbl">Modality</label>
+          <select class="fsel" id="fMod"><option value="">—</option><option>CT</option><option>MRI</option><option>USG</option><option>XR</option><option>NM</option><option>Fluoro</option></select></div>
+        <div class="fgi"><label class="flbl">System</label>
+          <select class="fsel" id="fSys"><option value="">—</option><option>Neuro</option><option>MSK</option><option>Chest</option><option>Abdomen</option><option>GU</option><option>Breast</option><option>Vascular</option><option>Paeds</option><option>H&N</option></select></div>
+      </div>
+      <div class="fgi">
+        <label class="flbl">Content</label>
+        <div class="etbar">
+          <button class="tb" onclick="fmt('**','**')" title="Bold"><b>B</b></button>
+          <button class="tb" onclick="fmt('_','_')" title="Italic"><i>I</i></button>
+          <button class="tb" onclick="fmtL('• ')" title="Bullet">•</button>
+          <button class="tb" onclick="fmtL('→ ')" title="Arrow">→</button>
+          <button class="tb" onclick="fmtL('⚠️ ')" title="Warning">⚠️</button>
+          <button class="tb" onclick="fmtL('✅ ')" title="Key point">✅</button>
+          <button class="tb" onclick="fmtL('🔺 ')" title="Raise">🔺</button>
+          <button class="tb" onclick="fmtL('## ')" title="Heading">H</button>
+          <button class="tb" onclick="insertHR()" title="Divider">—</button>
+          <button class="tb" onclick="fmtNumbered()" title="Numbered list">1.</button>
+        </div>
+        <textarea class="fta" id="fBody" rows="6" placeholder="Write your note…&#10;• Bullets  → Findings  ⚠️ Pitfalls  ✅ Key points"></textarea>
+      </div>
+      <div class="gram-bar" id="gramBar"></div>
+      <!-- FIX MENU (positioned relative wrapper) -->
+      <div style="position:relative">
+        <div class="fix-menu" id="fixMenu">
+          <div class="fix-item" onclick="runFix('grammar')">✨ Fix grammar &amp; spelling <span>AI</span></div>
+          <div class="fix-item" onclick="runFix('bullets')">• Convert selection to bullets</div>
+          <div class="fix-item" onclick="runFix('numbered')">1. Convert selection to numbered list</div>
+          <div class="fix-item" onclick="runFix('caps')">Aa Auto-capitalise lines</div>
+          <div class="fix-item" onclick="runFix('abbr')">🩻 Expand radiology abbreviations</div>
+          <div class="fix-item" onclick="runFix('clean')">🧹 Clean whitespace &amp; double spaces</div>
+        </div>
+      </div>
+      <div class="fgi">
+        <label class="flbl">Images — tap / drag / paste (multiple supported)</label>
+        <div class="imgzone" id="imgZone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+          <input type="file" accept="image/*" multiple onchange="handleFiles(this.files)">
+          <div class="imgzone-txt">📎 Add screenshots or imaging captures</div>
+        </div>
+        <div class="img-thumbs" id="imgThumbs"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="hbtn hbtn-ghost" onclick="closeEditorSafe()">Cancel</button>
+      <button class="hbtn" style="color:var(--green);border:1px solid rgba(62,207,142,.28);background:transparent;position:relative;" onclick="toggleFixMenu(event)">✨ Fix <span style="font-size:.65rem;opacity:.6">▾</span></button>
+      <button class="hbtn hbtn-teal"  onclick="saveNote()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IO -->
+<div class="overlay" id="ioOv" onclick="ovClick(event,'ioOv')">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle">💾 Backup & Restore</div><div class="mcls" onclick="closeIO()">✕</div></div>
+    <div id="ioStats" style="margin-bottom:14px;"></div>
+    <div class="io-cards">
+      <div class="io-card" onclick="exportNotes()"><div class="io-ico">⬇️</div><div class="io-t">Export</div><div class="io-d">Download compressed JSON</div></div>
+      <div class="io-card" style="position:relative;">
+        <input type="file" accept=".json" onchange="importNotes(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;">
+        <div class="io-ico">⬆️</div><div class="io-t">Import</div><div class="io-d">Restore from backup</div>
+      </div>
+      <div class="io-card" onclick="clearAll()"><div class="io-ico">🗑️</div><div class="io-t">Clear All</div><div class="io-d">Delete everything</div></div>
+    </div>
+    <p style="font-size:.7rem;color:var(--text-faint);margin-top:12px;">Images are compressed to JPEG 1200px before saving. Export regularly and keep backups in Google Drive or phone storage.</p>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settingsOv" onclick="ovClick(event,'settingsOv')">
+  <div class="settings-panel">
+    <div class="mhdr"><div class="mtitle">⚙️ Settings</div><div class="mcls" onclick="closeSettings()">✕</div></div>
+    <div class="srow">
+      <div class="slbl">Groq API Key <span style="color:var(--purple);font-size:.6rem">AI Assistant</span></div>
+      <div class="sdesc">Get a free key at <a href="https://console.groq.com" target="_blank" style="color:var(--teal)">console.groq.com</a>. Stored locally on your device only.</div>
+      <div class="skey-row" style="margin-top:6px;">
+        <input class="fi skey" id="sApiKey" type="password" placeholder="gsk_…" style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">
+        <button class="hbtn hbtn-teal" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+    <div class="srow">
+      <div class="slbl">Llama Model</div>
+      <select class="smodel" id="sModel">
+        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (recommended)</option>
+        <option value="llama3-70b-8192">llama3-70b-8192</option>
+        <option value="llama3-8b-8192">llama3-8b-8192 (faster, lighter)</option>
+        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
+      </select>
+    </div>
+    <div style="margin-top:16px;padding:10px 13px;background:rgba(168,125,232,.06);border:1px solid rgba(168,125,232,.15);border-radius:7px;font-size:.72rem;color:var(--text-dim);line-height:1.6;">
+      ⚠️ <strong style="color:var(--gold)">Clinical Disclaimer:</strong> The AI assistant is constrained to standard radiology references (Dahnert, STATdx, ACR, Radiopaedia, Grainger &amp; Allison). Always verify answers in primary sources before clinical use. Never rely solely on AI for patient management.
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div class="cdlg-bg" id="cdlgBg">
+  <div class="cdlg">
+    <div class="cdlg-ico" id="cdlgIco"></div>
+    <div class="cdlg-title" id="cdlgTitle"></div>
+    <div class="cdlg-msg" id="cdlgMsg"></div>
+    <div class="cdlg-btns">
+      <button class="hbtn hbtn-ghost" id="cdlgCancel" onclick="cdlgResolve(false)">Cancel</button>
+      <button class="hbtn" id="cdlgOk" onclick="cdlgResolve(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="zoom" onclick="this.style.display='none'"><img id="zimg"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS={
+  sign: {icon:'🎯',label:'Sign', color:'var(--teal)', bg:'rgba(0,200,232,.09)'},
+  pearl:{icon:'💎',label:'Pearl',color:'var(--gold)', bg:'rgba(245,192,67,.09)'},
+  case: {icon:'🫁',label:'Case', color:'var(--green)',bg:'rgba(62,207,142,.09)'},
+};
+let notes=[],filters={cat:'all'},imgs=[],editId=null;
+let vDeck=[],vIdx=0,bCat='all';
+let aiHistory=[];
+let otdNote=null; // picked once per app open, random eligible note
+let cdlgResolve=null;
+
+// ── STORAGE ──
+function load(){try{notes=JSON.parse(localStorage.getItem('rn3')||'[]');}catch{notes=[];}}
+function save(){localStorage.setItem('rn3',JSON.stringify(notes));}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── SETTINGS ──
+function loadSettings(){
+  const k=localStorage.getItem('rn_groq_key')||'';
+  const m=localStorage.getItem('rn_groq_model')||'llama-3.3-70b-versatile';
+  document.getElementById('sApiKey').value=k;
+  document.getElementById('sModel').value=m;
+}
+function saveSettings(){
+  localStorage.setItem('rn_groq_key',document.getElementById('sApiKey').value.trim());
+  localStorage.setItem('rn_groq_model',document.getElementById('sModel').value);
+  closeSettings();
+  showToast('✅ Settings saved','ok');
+}
+function getGroqKey(){return localStorage.getItem('rn_groq_key')||'';}
+function getGroqModel(){return localStorage.getItem('rn_groq_model')||'llama-3.3-70b-versatile';}
+function openSettings(){loadSettings();document.getElementById('settingsOv').classList.add('open');}
+function closeSettings(){document.getElementById('settingsOv').classList.remove('open');}
+
+// ── CUSTOM CONFIRM ──
+function showConfirm(ico,title,msg,okLabel='Delete',okColor='var(--red)'){
+  return new Promise(res=>{
+    cdlgResolve=res;
+    document.getElementById('cdlgIco').textContent=ico;
+    document.getElementById('cdlgTitle').textContent=title;
+    document.getElementById('cdlgMsg').textContent=msg;
+    const ok=document.getElementById('cdlgOk');
+    ok.textContent=okLabel;ok.style.background=okColor;ok.style.color=okColor==='var(--teal)'?'var(--navy)':'#fff';ok.style.border='none';
+    document.getElementById('cdlgBg').classList.add('open');
+  });
+}
+function cdlgResolveWrap(val){
+  document.getElementById('cdlgBg').classList.remove('open');
+  if(cdlgResolve){cdlgResolve(val);cdlgResolve=null;}
+}
+document.getElementById('cdlgCancel').onclick=()=>cdlgResolveWrap(false);
+document.getElementById('cdlgOk').onclick=()=>cdlgResolveWrap(true);
+
+// ── RENDER MAIN ──
+function getFiltered(){
+  const q=document.getElementById('srch').value.toLowerCase().trim();
+  const mod=document.getElementById('modFil').value;
+  const sys=document.getElementById('sysFil').value;
+  const srt=document.getElementById('sortSel').value;
+  let r=notes.filter(n=>{
+    if(filters.cat==='star'&&!n.starred)return false;
+    if(filters.cat!=='all'&&filters.cat!=='star'&&n.cat!==filters.cat)return false;
+    if(mod&&n.mod!==mod)return false;
+    if(sys&&n.sys!==sys)return false;
+    if(q&&!(n.title+' '+n.body).toLowerCase().includes(q))return false;
+    return true;
+  });
+  if(srt==='new')r.sort((a,b)=>b.ts-a.ts);
+  else if(srt==='old')r.sort((a,b)=>a.ts-b.ts);
+  else if(srt==='star')r.sort((a,b)=>(b.starred?1:0)-(a.starred?1:0)||b.ts-a.ts);
+  else r.sort((a,b)=>a.title.localeCompare(b.title));
+  return r;
+}
+
+function renderStats(){
+  const cats={};notes.forEach(n=>cats[n.cat]=(cats[n.cat]||0)+1);
+  const starred=notes.filter(n=>n.starred).length;
+  document.getElementById('stats').innerHTML=`
+    <div class="sc"><div class="sc-v">${notes.length}</div><div class="sc-l">Total</div></div>
+    <div class="sc"><div class="sc-v">${notes.filter(n=>Date.now()-n.ts<7*864e5).length}</div><div class="sc-l">This Week</div></div>
+    <div class="sc"><div class="sc-v">${notes.filter(n=>n.cat==='case').length}</div><div class="sc-l">Cases</div></div>
+    <div class="sc"><div class="sc-v">${starred}</div><div class="sc-l">Starred</div></div>`;
+  ['all','sign','pearl','case'].forEach(c=>{
+    const el=document.getElementById('cn-'+c);
+    if(el)el.textContent=c==='all'?notes.length:(cats[c]||0);
+  });
+  const starEl=document.getElementById('cn-star');
+  if(starEl)starEl.textContent=starred;
+  renderOTD();
+}
+
+function pickOTD(){
+  if(notes.length<2){otdNote=null;return;}
+  const newest=[...notes].sort((a,b)=>b.ts-a.ts)[0];
+  const pool=notes.filter(n=>n.id!==newest.id);
+  otdNote=pool[Math.floor(Math.random()*pool.length)]||null;
+}
+
+function renderOTD(){
+  const w=document.getElementById('otdWrap');
+  if(!otdNote){w.innerHTML='';return;}
+  const n=otdNote;
+  const d=Math.round((Date.now()-n.ts)/864e5);
+  const dLabel=d===0?'today':d===1?'yesterday':`${d} days ago`;
+  const m=CATS[n.cat]||{icon:'📄'};
+  w.innerHTML=`<div class="otd" onclick="openView('${n.id}')">
+    <div style="font-size:1.2rem">${m.icon}</div>
+    <div class="otd-txt">
+      <div class="otd-lbl">🔁 Revisit — added ${dLabel}</div>
+      <div class="otd-t">${esc(n.title)}</div>
+      <div class="otd-s">${[n.mod,n.sys].filter(Boolean).join(' · ')} · Tap to review</div>
+    </div>
+    <div style="color:var(--gold);opacity:.5;font-size:.9rem">→</div>
+  </div>`;
+}
+
+function renderNotes(){
+  const f=getFiltered();
+  document.getElementById('rcount').textContent=f.length===notes.length?`${notes.length} note${notes.length!==1?'s':''}`:`${f.length} of ${notes.length}`;
+  const g=document.getElementById('grid');
+  if(!f.length){
+    g.innerHTML=`<div class="empty"><div class="empty-ico">🔬</div><h3>${notes.length===0?'No notes yet':'No matches'}</h3><p>${notes.length===0?'Add your first radiology note':'Try different filters'}</p>${notes.length===0?'<button class="empty-btn" onclick="openEditor()">＋ Add First Note</button>':''}</div>`;
+    return;
+  }
+  g.innerHTML=f.map(n=>noteCard(n)).join('');
+}
+
+function stripMd(t){return t.replace(/\*\*(.*?)\*\*/g,'$1').replace(/_(.*?)_/g,'$1').replace(/^##\s*/gm,'');}
+
+function noteCard(n){
+  const m=CATS[n.cat]||{icon:'📄',label:n.cat,color:'var(--teal)',bg:'rgba(0,200,232,.09)'};
+  const date=new Date(n.ts).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  const bdg=[n.mod?`<span class="b bm">${n.mod}</span>`:'',n.sys?`<span class="b bs">${esc(n.sys)}</span>`:''].join('');
+  const allImgs=n.imgs?.length?n.imgs:(n.img?[{src:n.img,label:''}]:[]);
+  const normImgs=allImgs.map(x=>typeof x==='string'?{src:x,label:''}:x);
+  const imgHtml=normImgs.length?`<img class="ncard-img" src="${normImgs[0].src}" loading="lazy">`:'';
+  const starCls=n.starred?'star-on':'';
+  return `<div class="ncard c-${n.cat}" onclick="openView('${n.id}')" style="--cat-color:${m.color};--cat-bg:${m.bg}">
+    <div class="ncard-top">
+      <div class="ncard-ico" style="background:${m.bg}">${m.icon}</div>
+      <div class="ncard-meta"><div class="ncard-title">${n.starred?'⭐ ':''}${esc(n.title)}</div><div class="bdgs">${bdg}</div></div>
+    </div>
+    <div class="ncard-body">${esc(stripMd(n.body))}</div>
+    ${imgHtml}
+    <div class="ncard-foot">
+      <span class="ncard-date">${date}</span>
+      <div class="ncard-acts">
+        <div class="ib ${starCls}" onclick="event.stopPropagation();toggleStar('${n.id}')" title="${n.starred?'Unstar':'Star'}">⭐</div>
+        <div class="ib" onclick="event.stopPropagation();editNote('${n.id}')">✏️</div>
+        <div class="ib del" onclick="event.stopPropagation();delNote('${n.id}')">🗑</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── FILTERS ──
+function setCat(c,el){filters.cat=c;document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('on',x.dataset.cat===c));renderNotes();}
+document.getElementById('srch').addEventListener('input',renderNotes);
+
+// ── STAR / FAVOURITE ──
+function toggleStar(id){
+  const n=notes.find(x=>x.id===id);if(!n)return;
+  n.starred=!n.starred;
+  save();renderStats();renderNotes();
+  showToast(n.starred?'⭐ Starred':'Star removed');
+  // update view button if open
+  const vfs=document.getElementById('vfs');
+  if(vfs.classList.contains('open')){
+    const btn=document.getElementById('v-star');
+    btn.textContent=n.starred?'⭐ Starred':'☆ Star';
+    btn.style.color=n.starred?'var(--gold)':'';
+    btn.style.borderColor=n.starred?'rgba(245,192,67,.35)':'';
+  }
+}
+
+// ── SURPRISE ME ──
+function surpriseMe(){
+  if(!notes.length){showToast('Add some notes first!','err');return;}
+  const pool=[...notes].sort(()=>Math.random()-0.5);
+  const deck=pool.map(x=>x.id);
+  closeView();
+  setTimeout(()=>openView(deck[0],deck),80);
+  showToast('🎲 Shuffle on — swipe through all notes!');
+}
+
+// ── VIEW FULLSCREEN ──
+function openView(id,deck){
+  const n=notes.find(x=>x.id===id);if(!n)return;
+  if(deck){vDeck=deck;}
+  else{const f=getFiltered();vDeck=f.length?f.map(x=>x.id):notes.map(x=>x.id);}
+  vIdx=vDeck.indexOf(id);
+  if(vIdx<0){vDeck=[id];vIdx=0;}
+  // reset AI
+  aiHistory=[];
+  document.getElementById('aiMsgs').innerHTML='<div class="ai-msg thinking" id="aiWelcome">Ask anything — findings, DDx, anatomy, classifications, staging… Current note is shared as context. Answers are constrained to standard references (Dahnert, STATdx, ACR, Radiopaedia).</div>';
+  document.getElementById('aiInp').value='';
+  renderView(n);
+  document.getElementById('vfs').classList.add('open');
+  // show/hide AI input based on key
+  updateAIKeyUI();
+  attachSwipe();
+}
+
+function updateAIKeyUI(){
+  const hasKey=!!getGroqKey();
+  document.getElementById('aiInputRow').style.display=hasKey?'flex':'none';
+  document.getElementById('aiNoKey').style.display=hasKey?'none':'block';
+}
+
+function renderView(n){
+  const m=CATS[n.cat]||{icon:'📄',label:n.cat,color:'var(--teal)',bg:'rgba(0,200,232,.09)'};
+  const date=new Date(n.ts).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  const pill=document.getElementById('v-cpill');
+  pill.textContent=m.icon+' '+m.label;pill.style.background=m.bg;pill.style.color=m.color;
+  document.getElementById('v-pos').textContent=vDeck.length>1?`${vIdx+1} / ${vDeck.length}`:'';
+  document.getElementById('vPrev').disabled=vIdx<=0;
+  document.getElementById('vNext').disabled=vIdx>=vDeck.length-1;
+  document.getElementById('v-title').textContent=n.title;
+  document.getElementById('v-badges').innerHTML=[
+    n.mod?`<span class="b bm">${n.mod}</span>`:'',
+    n.sys?`<span class="b bs">${esc(n.sys)}</span>`:'',
+    `<span class="b br">📅 ${date}</span>`,
+    n.starred?`<span class="b" style="background:rgba(245,192,67,.1);color:var(--gold)">⭐ Starred</span>`:'',
+  ].join('');
+  document.getElementById('v-body').innerHTML=fmtBody(n.body);
+  const allImgs=n.imgs?.length?n.imgs:(n.img?[{src:n.img,label:''}]:[]);
+  const normImgs=allImgs.map(x=>typeof x==='string'?{src:x,label:''}:x);
+  document.getElementById('v-imgs').innerHTML=normImgs.map(img=>`
+    <div class="v-img-wrap">
+      <img class="v-img" src="${img.src}" onclick="zoomImg(this.src)">
+      ${img.label?`<div class="v-img-lbl">📌 ${esc(img.label)}</div>`:''}
+    </div>`).join('');
+  // wire up action buttons
+  const starBtn=document.getElementById('v-star');
+  starBtn.textContent=n.starred?'⭐ Starred':'☆ Star';
+  starBtn.style.color=n.starred?'var(--gold)':'';
+  starBtn.style.borderColor=n.starred?'rgba(245,192,67,.35)':'';
+  starBtn.onclick=()=>toggleStar(n.id);
+  document.getElementById('v-edit').onclick=()=>{closeView();editNote(n.id);};
+  document.getElementById('v-del').onclick=()=>delNoteFromView(n.id);
+}
+
+async function delNoteFromView(id){
+  const confirmed=await showConfirm('🗑️','Delete Note','This note will be permanently deleted. This cannot be undone.','Delete','var(--red)');
+  if(!confirmed)return;
+  notes=notes.filter(n=>n.id!==id);
+  save();renderStats();renderNotes();
+  closeView();
+  showToast('🗑 Deleted');
+}
+
+function vNav(dir){
+  let ni=vIdx+dir;
+  if(ni<0)ni=vDeck.length-1;
+  if(ni>=vDeck.length)ni=0;
+  if(vDeck.length<=1)return;
+  const inner=document.getElementById('vInner');
+  const oc=dir>0?'ao-l':'ao-r',ic=dir>0?'ai-l':'ai-r';
+  inner.classList.add(oc);
+  setTimeout(()=>{
+    inner.classList.remove(oc);
+    vIdx=ni;
+    const n=notes.find(x=>x.id===vDeck[vIdx]);
+    if(n){
+      aiHistory=[];
+      document.getElementById('aiMsgs').innerHTML='<div class="ai-msg thinking">Ask anything — current note is now shared as context.</div>';
+      renderView(n);document.querySelector('.v-scroll').scrollTop=0;inner.classList.add(ic);
+    }
+    setTimeout(()=>inner.classList.remove(ic),190);
+  },160);
+}
+function closeView(){document.getElementById('vfs').classList.remove('open');}
+
+function attachSwipe(){
+  const el=document.getElementById('vfs');
+  let sx=0,drag=false,tx=0;
+  const onS=e=>{const t=e.touches?.[0]||e;sx=t.clientX;drag=true;tx=0;};
+  const onM=e=>{if(!drag)return;const t=e.touches?.[0]||e;tx=t.clientX-sx;};
+  const onE=()=>{if(!drag)return;drag=false;if(Math.abs(tx)>50){tx<0?vNav(1):vNav(-1);}tx=0;};
+  if(el._swipe){
+    ['touchstart','mousedown'].forEach(ev=>el.removeEventListener(ev,el._swipe.s));
+    ['touchmove','mousemove'].forEach(ev=>el.removeEventListener(ev,el._swipe.m));
+    ['touchend','mouseup'].forEach(ev=>el.removeEventListener(ev,el._swipe.e));
+  }
+  el._swipe={s:onS,m:onM,e:onE};
+  ['touchstart','mousedown'].forEach(ev=>el.addEventListener(ev,onS,{passive:true}));
+  ['touchmove','mousemove'].forEach(ev=>el.addEventListener(ev,onM,{passive:true}));
+  ['touchend','mouseup'].forEach(ev=>el.addEventListener(ev,onE));
+}
+
+// ── AI ASSISTANT ──
+const AI_SYSTEM=`You are a radiology education assistant. You help radiology residents learn by answering questions about radiology — imaging findings, signs, differentials, anatomy, pathology, classifications, staging systems, and exam preparation.
+
+STRICT RULES:
+1. Answer ONLY from established, standard radiology references: Dahnert's Radiology Review Manual, STATdx, ACR guidelines, Radiopaedia (peer-reviewed), Grainger & Allison's Diagnostic Radiology, Campbell-Walsh Urology (for GU), and standard anatomy texts.
+2. If you are not certain of a fact, say "I am not certain — please verify in [specific reference]." Never fabricate numbers, percentages, classifications, or staging criteria.
+3. Flag uncertainty explicitly with ⚠️ when you are less confident.
+4. Never invent findings, signs, or diagnoses. If you don't know, say so clearly.
+5. Consider Indian epidemiology where relevant — TB is common, NCC is common, tropical diseases matter.
+6. Keep answers concise and educational. Use bullet points for clarity.
+7. Always end uncertain or complex answers with: "📚 Verify in: [specific book/reference]"
+8. Do not give patient management advice — radiology education only.`;
+
+async function sendAI(){
+  const key=getGroqKey();
+  if(!key){showToast('Add Groq API key in Settings','err');return;}
+  const inp=document.getElementById('aiInp');
+  const q=inp.value.trim();
+  if(!q)return;
+  inp.value='';
+  // get current note context — injected once as part of system prompt
+  const n=notes.find(x=>x.id===vDeck[vIdx]);
+  const noteCtx=n
+    ?`\n\nCurrent note for context (use this as reference when relevant):\nTitle: ${n.title}\nCategory: ${n.cat}\nModality: ${n.mod||'—'}\nSystem: ${n.sys||'—'}\nContent:\n${n.body}`
+    :'';
+  // show in UI
+  addAIMsg('user',q);
+  const thinkEl=addAIMsg('thinking','🤔 Thinking…');
+  document.getElementById('aiSendBtn').disabled=true;
+  // push new user turn into history
+  aiHistory.push({role:'user',content:q});
+  // build properly alternating messages array:
+  // [system] → [user/assistant pairs from history]
+  const messages=[
+    {role:'system',content:AI_SYSTEM+noteCtx},
+    ...aiHistory.map(m=>({role:m.role,content:m.content}))
+  ];
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:getGroqModel(),messages,max_tokens:700,temperature:0.2})
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({error:{message:'API error'}}));
+      thinkEl.className='ai-msg err';
+      thinkEl.textContent='⚠️ Error: '+(err.error?.message||'API request failed. Check your key.');
+      aiHistory.pop(); // remove failed user turn
+    } else {
+      const data=await res.json();
+      const reply=data.choices?.[0]?.message?.content||'No response.';
+      thinkEl.className='ai-msg ai';
+      thinkEl.innerHTML=formatAIReply(reply);
+      aiHistory.push({role:'assistant',content:reply});
+      // trim to last 12 messages (6 turns) to stay within token limits
+      if(aiHistory.length>12)aiHistory=aiHistory.slice(-12);
+    }
+  } catch(e){
+    thinkEl.className='ai-msg err';
+    thinkEl.textContent='⚠️ Network error. Check connection.';
+    aiHistory.pop();
+  }
+  document.getElementById('aiSendBtn').disabled=false;
+  const msgs=document.getElementById('aiMsgs');
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addAIMsg(type,text){
+  const msgs=document.getElementById('aiMsgs');
+  const d=document.createElement('div');
+  d.className='ai-msg '+(type==='user'?'user':type==='thinking'?'thinking':'ai');
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+
+function formatAIReply(text){
+  return esc(text)
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/⚠️/g,'<span style="color:var(--gold)">⚠️</span>')
+    .replace(/📚/g,'<span style="color:var(--teal)">📚</span>')
+    .replace(/\n/g,'<br>');
+}
+
+// ── BROWSE ──
+function openBrowse(){
+  bCat='all';document.querySelectorAll('[data-bcat]').forEach(x=>x.classList.toggle('on',x.dataset.bcat==='all'));
+  document.getElementById('bsrch').value='';renderBrowse();
+  document.getElementById('bfs').classList.add('open');
+  setTimeout(()=>document.getElementById('bsrch').focus(),150);
+}
+function closeBrowse(){document.getElementById('bfs').classList.remove('open');}
+function setBCat(c,el){bCat=c;document.querySelectorAll('[data-bcat]').forEach(x=>x.classList.remove('on'));el.classList.add('on');renderBrowse();}
+function renderBrowse(){
+  const q=document.getElementById('bsrch').value.toLowerCase().trim();
+  const pool=notes.filter(n=>{
+    if(bCat!=='all'&&n.cat!==bCat)return false;
+    if(q&&!(n.title+' '+n.body).toLowerCase().includes(q))return false;
+    return true;
+  }).sort((a,b)=>b.ts-a.ts);
+  document.getElementById('bcount').textContent=`${pool.length} note${pool.length!==1?'s':''}`;
+  const deck=pool.map(x=>x.id);
+  const list=document.getElementById('blist');
+  if(!pool.length){list.innerHTML=`<div class="empty" style="padding:36px 0"><div class="empty-ico">🔬</div><h3>Nothing found</h3></div>`;return;}
+  list.innerHTML=pool.map((n,i)=>{
+    const m=CATS[n.cat]||{icon:'📄',bg:'rgba(0,200,232,.09)'};
+    const d=new Date(n.ts).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    const meta=[n.mod,n.sys,d].filter(Boolean).join(' · ');
+    return `<div class="brow" data-idx="${i}">
+      <div class="brow-ico" style="background:${m.bg}">${m.icon}</div>
+      <div class="brow-body"><div class="brow-t">${n.starred?'⭐ ':''}${esc(n.title)}</div><div class="brow-m">${meta}</div></div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.brow').forEach((row,i)=>{
+    row.addEventListener('click',()=>{const id=pool[i].id;closeBrowse();setTimeout(()=>openView(id,deck),100);});
+  });
+}
+
+// ── EDITOR ──
+function hasEditorContent(){
+  return !!(document.getElementById('fTitle').value.trim()||document.getElementById('fBody').value.trim()||imgs.length);
+}
+function openEditor(note=null){
+  editId=note?note.id:null;
+  document.getElementById('edTitle').textContent=note?'Edit Note':'New Note';
+  document.getElementById('fTitle').value=note?note.title:'';
+  document.getElementById('fCat').value=note?note.cat:'sign';
+  document.getElementById('fMod').value=note?note.mod:'';
+  document.getElementById('fSys').value=note?note.sys:'';
+  document.getElementById('fBody').value=note?note.body:'';
+  const raw=note?(note.imgs?.length?[...note.imgs]:(note.img?[note.img]:[])):[];
+  imgs=raw.map(x=>typeof x==='string'?{src:x,label:''}:x);
+  renderThumbs();
+  document.getElementById('gramBar').classList.remove('show');
+  document.getElementById('gramBar').textContent='';
+  document.getElementById('fixMenu').classList.remove('open');
+  document.getElementById('edOv').classList.add('open');
+  closeFab();
+  setTimeout(()=>document.getElementById('fTitle').focus(),180);
+}
+async function closeEditorSafe(){
+  if(hasEditorContent()){
+    const confirmed=await showConfirm('⚠️','Discard Changes?','You have unsaved content. Are you sure you want to close without saving?','Discard','var(--red)');
+    if(!confirmed)return;
+  }
+  closeEditor();
+}
+function ovClickEditor(e){
+  if(e.target===document.getElementById('edOv'))closeEditorSafe();
+}
+function closeEditor(){document.getElementById('edOv').classList.remove('open');editId=null;imgs=[];document.getElementById('fixMenu').classList.remove('open');}
+
+// ── FIX MENU ──
+function toggleFixMenu(e){
+  e.stopPropagation();
+  document.getElementById('fixMenu').classList.toggle('open');
+}
+document.addEventListener('click',()=>document.getElementById('fixMenu').classList.remove('open'));
+
+async function runFix(type){
+  document.getElementById('fixMenu').classList.remove('open');
+  const ta=document.getElementById('fBody');
+  const titleEl=document.getElementById('fTitle');
+  const bar=document.getElementById('gramBar');
+
+  if(type==='grammar'){
+    const key=getGroqKey();
+    if(!key){showToast('Add Groq API key in Settings','err');return;}
+    bar.textContent='⏳ Fixing grammar…';bar.className='gram-bar show';bar.style.color='var(--text-dim)';
+    try{
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({
+          model:getGroqModel(),
+          messages:[{role:'system',content:'You are a medical text editor. Fix grammar, spelling, and punctuation ONLY. Do NOT change any medical facts, terminology, abbreviations, or radiology content. Do NOT add or remove information. Return ONLY the corrected text, nothing else.'},{role:'user',content:'Fix grammar only:\n\n'+ta.value}],
+          max_tokens:1500,temperature:0.1
+        })
+      });
+      if(!res.ok)throw new Error('API error');
+      const data=await res.json();
+      const fixed=data.choices?.[0]?.message?.content||ta.value;
+      ta.value=fixed;
+      bar.textContent='✅ Grammar fixed by AI';bar.style.color='var(--green)';
+      setTimeout(()=>bar.classList.remove('show'),3000);
+    } catch(e){
+      bar.textContent='⚠️ AI fix failed — check your API key';bar.style.color='var(--red)';
+      setTimeout(()=>bar.classList.remove('show'),3000);
+    }
+    return;
+  }
+
+  if(type==='bullets'){
+    const s=ta.selectionStart,e=ta.selectionEnd;
+    const sel=ta.value.slice(s,e).trim();
+    if(!sel){showToast('Select text first','err');return;}
+    const converted=sel.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.startsWith('• ')?l:'• '+l).join('\n');
+    ta.value=ta.value.slice(0,s)+converted+ta.value.slice(e);
+    bar.textContent='✅ Converted to bullets';bar.style.color='var(--green)';bar.className='gram-bar show';
+    setTimeout(()=>bar.classList.remove('show'),2000);return;
+  }
+
+  if(type==='numbered'){
+    const s=ta.selectionStart,e=ta.selectionEnd;
+    const sel=ta.value.slice(s,e).trim();
+    if(!sel){showToast('Select text first','err');return;}
+    let i=1;
+    const converted=sel.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const stripped=l.replace(/^[\d]+\.\s*/,'').replace(/^•\s*/,'');
+      return `${i++}. ${stripped}`;
+    }).join('\n');
+    ta.value=ta.value.slice(0,s)+converted+ta.value.slice(e);
+    bar.textContent='✅ Converted to numbered list';bar.style.color='var(--green)';bar.className='gram-bar show';
+    setTimeout(()=>bar.classList.remove('show'),2000);return;
+  }
+
+  if(type==='caps'){
+    // Capitalise first letter after newline, after sentence end, after bullet prefixes
+    let t=ta.value;
+    // capitalise start
+    t=t.charAt(0).toUpperCase()+t.slice(1);
+    // after sentence punctuation
+    t=t.replace(/([.!?]\s+)([a-z])/g,(m,p,c)=>p+c.toUpperCase());
+    // after newline
+    t=t.replace(/(\n)([ \t]*)([a-z])/g,(m,nl,sp,c)=>nl+sp+c.toUpperCase());
+    // after bullet chars
+    t=t.replace(/(→|•|✅|⚠️|🔺|##)\s+([a-z])/g,(m,b,c)=>b+' '+c.toUpperCase());
+    // capitalise title too
+    titleEl.value=titleEl.value.charAt(0).toUpperCase()+titleEl.value.slice(1);
+    ta.value=t;
+    bar.textContent='✅ Auto-capitalised';bar.style.color='var(--green)';bar.className='gram-bar show';
+    setTimeout(()=>bar.classList.remove('show'),2000);return;
+  }
+
+  if(type==='abbr'){
+    const abbr={
+      '\\bcxr\\b':'CXR','\\bct\\b':'CT','\\bmri\\b':'MRI','\\busg\\b':'USG','\\bpe\\b':'PE',
+      '\\bdvt\\b':'DVT','\\bhcc\\b':'HCC','\\bi\\.v\\b':'IV','\\bi\\.m\\b':'IM',
+      '\\blv\\b':'LV','\\brv\\b':'RV','\\bivc\\b':'IVC','\\bsvc\\b':'SVC',
+      '\\bacs\\b':'ACS','\\bcva\\b':'CVA','\\btia\\b':'TIA','\\bms\\b':'MS',
+      '\\btvs\\b':'TVS','\\bcect\\b':'CECT','\\bncct\\b':'NCCT',
+      '\\bflair\\b':'FLAIR','\\bdwi\\b':'DWI','\\badc\\b':'ADC',
+      '\\bstir\\b':'STIR','\\bgre\\b':'GRE','\\bt1\\b':'T1','\\bt2\\b':'T2',
+      '\\bpd\\b':'PD','\\btrue fisp\\b':'True FISP','\\bhaste\\b':'HASTE',
+      '\\bvibe\\b':'VIBE','\\bmrcp\\b':'MRCP','\\bmra\\b':'MRA','\\bdsa\\b':'DSA',
+    };
+    let t=ta.value;
+    Object.entries(abbr).forEach(([k,v])=>{t=t.replace(new RegExp(k,'gi'),v);});
+    ta.value=t;
+    bar.textContent='✅ Abbreviations expanded';bar.style.color='var(--green)';bar.className='gram-bar show';
+    setTimeout(()=>bar.classList.remove('show'),2000);return;
+  }
+
+  if(type==='clean'){
+    let t=ta.value;
+    t=t.replace(/[ \t]+$/gm,'');     // trailing spaces per line
+    t=t.replace(/  +/g,' ');          // double spaces
+    t=t.replace(/\n{3,}/g,'\n\n');    // triple+ newlines → double
+    t=t.trim();
+    ta.value=t;
+    bar.textContent='✅ Whitespace cleaned';bar.style.color='var(--green)';bar.className='gram-bar show';
+    setTimeout(()=>bar.classList.remove('show'),2000);return;
+  }
+}
+
+async function saveNote(){
+  let title=document.getElementById('fTitle').value.trim();
+  if(!title){showToast('Title required','err');return;}
+  // confirm if editing existing note
+  if(editId){
+    const confirmed=await showConfirm('💾','Save Changes?','Overwrite this note with your edits?','Save','var(--teal)');
+    if(!confirmed)return;
+  }
+  title=title.charAt(0).toUpperCase()+title.slice(1);
+  const existing=editId?notes.find(n=>n.id===editId):null;
+  const note={
+    id:editId||Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    ts:editId?(existing?.ts||Date.now()):Date.now(),
+    title,
+    cat:document.getElementById('fCat').value,
+    mod:document.getElementById('fMod').value,
+    sys:document.getElementById('fSys').value,
+    body:document.getElementById('fBody').value.trim(),
+    imgs:[...imgs],img:null,
+    starred:existing?.starred||false,
+  };
+  if(editId){const i=notes.findIndex(n=>n.id===editId);if(i>=0)notes[i]=note;}
+  else notes.unshift(note);
+  save();renderStats();renderNotes();
+  closeEditor();showToast(editId?'✅ Updated':'✅ Saved','ok');
+}
+
+function editNote(id){const n=notes.find(x=>x.id===id);if(n)openEditor(n);}
+
+async function delNote(id){
+  const confirmed=await showConfirm('🗑️','Delete Note','This note will be permanently deleted. This cannot be undone.','Delete','var(--red)');
+  if(!confirmed)return;
+  notes=notes.filter(n=>n.id!==id);
+  save();renderStats();renderNotes();
+  showToast('🗑 Deleted');
+}
+
+// ── FORMAT BODY ──
+function fmtBody(t){
+  return esc(t)
+    .replace(/^##\s*(.+)$/gm,'<div style="font-size:.8rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--teal);margin:10px 0 4px">$1</div>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--teal)">$1</strong>')
+    .replace(/_(.*?)_/g,'<em style="color:var(--gold)">$1</em>')
+    .replace(/(→)/g,'<span style="color:var(--teal)">$1</span>')
+    .replace(/(✅|🔑)/g,'<span style="color:var(--green)">$1</span>')
+    .replace(/(⚠️|🔺)/g,'<span style="color:var(--gold)">$1</span>')
+    .replace(/---/g,'<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">')
+    .replace(/\n/g,'<br>');
+}
+
+// ── MULTI IMAGE ──
+const IMG_MAX_PX=1200,IMG_QUALITY=0.72;
+function compressImage(dataUrl,cb){
+  const img=new Image();
+  img.onload=()=>{
+    let{width:w,height:h}=img;
+    if(w>IMG_MAX_PX||h>IMG_MAX_PX){if(w>=h){h=Math.round(h*IMG_MAX_PX/w);w=IMG_MAX_PX;}else{w=Math.round(w*IMG_MAX_PX/h);h=IMG_MAX_PX;}}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',IMG_QUALITY));
+  };img.src=dataUrl;
+}
+function addImageFile(file){
+  if(!file||!file.type.startsWith('image/'))return;
+  if(file.size>12*1024*1024){showToast('Image too large (max 12MB)','err');return;}
+  const r=new FileReader();
+  r.onload=e=>compressImage(e.target.result,compressed=>{
+    const kb=Math.round(compressed.length*0.75/1024);
+    imgs.push({src:compressed,label:''});renderThumbs();
+    showToast(`📎 Image added (~${kb} KB)`,'ok');
+  });r.readAsDataURL(file);
+}
+function handleFiles(files){Array.from(files).forEach(addImageFile);}
+function handleDrop(e){e.preventDefault();document.getElementById('imgZone').classList.remove('drag');handleFiles(e.dataTransfer.files);}
+
+function renderThumbs(){
+  document.getElementById('imgThumbs').innerHTML=imgs.map((img,i)=>{
+    const kb=Math.round(img.src.length*0.75/1024);
+    return `<div class="img-thumb">
+      <div style="position:relative;">
+        <img src="${img.src}">
+        <button class="img-del" onclick="rmImgConfirm(${i})">✕</button>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#aaa;font-size:.55rem;text-align:center;border-radius:0 0 5px 5px;padding:1px 0">${kb}KB</div>
+      </div>
+      <input class="img-thumb-lbl" placeholder="Label…" value="${esc(img.label||'')}" oninput="imgs[${i}].label=this.value">
+    </div>`;
+  }).join('');
+}
+
+async function rmImgConfirm(i){
+  const confirmed=await showConfirm('🖼️','Remove Image','Remove this image from the note?','Remove','var(--red)');
+  if(!confirmed)return;
+  imgs.splice(i,1);renderThumbs();
+}
+
+document.addEventListener('paste',e=>{
+  if(!document.getElementById('edOv').classList.contains('open'))return;
+  const items=e.clipboardData?.items;if(!items)return;
+  for(const item of items){
+    if(item.type.startsWith('image/')){
+      const r=new FileReader();
+      r.onload=ev=>compressImage(ev.target.result,compressed=>{imgs.push({src:compressed,label:''});renderThumbs();});
+      r.readAsDataURL(item.getAsFile());break;
+    }
+  }
+});
+
+// ── EDITOR TOOLBAR ──
+function fmt(pre,suf){
+  const ta=document.getElementById('fBody');
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  const sel=ta.value.slice(s,e)||'text';
+  ta.value=ta.value.slice(0,s)+pre+sel+suf+ta.value.slice(e);
+  ta.focus();ta.selectionStart=s+pre.length;ta.selectionEnd=s+pre.length+sel.length;
+}
+function fmtL(pre){
+  const ta=document.getElementById('fBody');
+  const ls=ta.value.lastIndexOf('\n',ta.selectionStart-1)+1;
+  const lineEnd=ta.value.indexOf('\n',ta.selectionStart);
+  const line=ta.value.slice(ls,lineEnd<0?undefined:lineEnd);
+  // guard: don't double-prefix
+  if(line.startsWith(pre)){ta.focus();return;}
+  ta.value=ta.value.slice(0,ls)+pre+ta.value.slice(ls);
+  ta.focus();
+}
+function insertHR(){
+  const ta=document.getElementById('fBody');
+  const s=ta.selectionStart;
+  ta.value=ta.value.slice(0,s)+'\n---\n'+ta.value.slice(s);
+  ta.focus();
+}
+function fmtNumbered(){
+  const ta=document.getElementById('fBody');
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  const sel=ta.value.slice(s,e).trim();
+  if(sel){
+    let i=1;
+    const converted=sel.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>`${i++}. ${l.replace(/^[\d]+\.\s*/,'').replace(/^•\s*/,'')}`).join('\n');
+    ta.value=ta.value.slice(0,s)+converted+ta.value.slice(e);
+  } else {
+    const ls=ta.value.lastIndexOf('\n',s-1)+1;
+    ta.value=ta.value.slice(0,ls)+'1. '+ta.value.slice(ls);
+  }
+  ta.focus();
+}
+
+// ── FAB ──
+function toggleFab(){const f=document.getElementById('fab');f.classList.toggle('open');document.getElementById('fabMain').textContent=f.classList.contains('open')?'✕':'＋';}
+function closeFab(){document.getElementById('fab').classList.remove('open');document.getElementById('fabMain').textContent='＋';}
+document.addEventListener('click',e=>{const f=document.getElementById('fab');if(!f.contains(e.target))closeFab();});
+
+// ── IO ──
+function openIO(){updateIOStats();document.getElementById('ioOv').classList.add('open');}
+function closeIO(){document.getElementById('ioOv').classList.remove('open');}
+function calcSize(){const json=JSON.stringify(notes);const bytes=new Blob([json]).size;if(bytes<1024)return bytes+' B';if(bytes<1024*1024)return(bytes/1024).toFixed(1)+' KB';return(bytes/(1024*1024)).toFixed(2)+' MB';}
+function updateIOStats(){
+  const noteCount=notes.length,imgCount=notes.reduce((a,n)=>a+(n.imgs?.length||0),0),size=calcSize();
+  const sizeNum=parseFloat(size),isMB=size.includes('MB'),warn=isMB&&sizeNum>5;
+  document.getElementById('ioStats').innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:${warn?'10px':'0'}">
+      <span style="font-size:.75rem;color:var(--text-dim)">📝 ${noteCount} note${noteCount!==1?'s':''}</span>
+      <span style="font-size:.75rem;color:var(--text-dim)">🖼 ${imgCount} image${imgCount!==1?'s':''}</span>
+      <span style="font-size:.75rem;color:${warn?'var(--gold)':'var(--green)'}">💾 ~${size}</span>
+    </div>
+    ${warn?`<div style="font-size:.72rem;color:var(--gold);background:rgba(245,192,67,.08);border:1px solid rgba(245,192,67,.2);border-radius:6px;padding:7px 10px;">⚠️ Large backup (~${size}). Consider removing unused images.</div>`:''}`;
+}
+
+async function exportNotes(){
+  showToast('⏳ Preparing export…');
+  const MAX_EXPORT_KB=150;
+  const exp=await Promise.all(notes.map(async n=>{
+    const pi=imgObj=>new Promise(res=>{
+      const src=typeof imgObj==='string'?imgObj:imgObj.src;
+      const label=typeof imgObj==='string'?'':(imgObj.label||'');
+      if(!src){res(null);return;}
+      const kb=src.length*0.75/1024;
+      if(kb<=MAX_EXPORT_KB){res({src,label});return;}
+      const img=new Image();
+      img.onload=()=>{const c=document.createElement('canvas');let w=img.width,h=img.height;const sc=Math.min(1,Math.sqrt(MAX_EXPORT_KB*1024/(w*h)));c.width=Math.round(w*sc);c.height=Math.round(h*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res({src:c.toDataURL('image/jpeg',.65),label});};
+      img.src=src;
+    });
+    const imgs2=(await Promise.all((n.imgs||[]).map(pi))).filter(Boolean);
+    return{...n,imgs:imgs2,img:null};
+  }));
+  const json=JSON.stringify(exp,null,2);
+  const finalKB=(new Blob([json]).size/1024).toFixed(0);
+  const b=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`radnotes_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  showToast(`⬇️ Exported — ${finalKB} KB`,'ok');
+}
+
+function importNotes(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{
+    try{const d=JSON.parse(e.target.result);if(!Array.isArray(d))throw 0;
+      showConfirm('⬆️','Import Notes',`Import ${d.length} notes? Duplicates will be skipped.`,'Import','var(--teal)').then(ok=>{
+        if(!ok)return;
+        const ex=new Set(notes.map(n=>n.id));const nw=d.filter(n=>!ex.has(n.id));
+        notes=[...notes,...nw];save();renderStats();renderNotes();closeIO();showToast(`✅ Imported ${nw.length}`,'ok');
+      });
+    }catch{showToast('Invalid file','err');}
+  };r.readAsText(f);inp.value='';
+}
+
+async function clearAll(){
+  const confirmed=await showConfirm('🗑️','Delete All Notes','This will permanently delete ALL your notes and cannot be undone. Make sure you have a backup.','Delete All','var(--red)');
+  if(!confirmed)return;
+  notes=[];save();renderStats();renderNotes();closeIO();showToast('🗑 Cleared');
+}
+
+// ── UTILS ──
+function ovClick(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+function zoomImg(src){document.getElementById('zimg').src=src;document.getElementById('zoom').style.display='flex';}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  const vO=document.getElementById('vfs').classList.contains('open');
+  const edO=document.getElementById('edOv').classList.contains('open');
+  const bO=document.getElementById('bfs').classList.contains('open');
+  const anyO=vO||edO||bO||document.getElementById('ioOv').classList.contains('open')||document.getElementById('settingsOv').classList.contains('open');
+  if(e.key==='Escape'){
+    if(document.getElementById('cdlgBg').classList.contains('open')){cdlgResolveWrap(false);return;}
+    if(edO){closeEditorSafe();return;}
+    ['ioOv','settingsOv'].forEach(id=>document.getElementById(id).classList.remove('open'));
+    closeView();closeBrowse();
+    document.getElementById('zoom').style.display='none';return;
+  }
+  if(!anyO&&(e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();openEditor();}
+  if(vO&&!edO){if(e.key==='ArrowRight')vNav(1);if(e.key==='ArrowLeft')vNav(-1);}
+});
+
+// ── SEED ──
+function seed(){
+  if(notes.length)return;
+  notes=[
+    {id:'s1',ts:Date.now()-8*864e5,title:"Hampton's Hump — Pulmonary Embolism",cat:'sign',mod:'XR',sys:'Chest',imgs:[],img:null,starred:false,
+     body:"→ Pleural-based, wedge-shaped opacity at lung periphery.\n→ Represents pulmonary infarction distal to an occluded vessel.\n\n⚠️ Occurs in only ~30% of PE — absence does NOT exclude PE.\n✅ Look at costophrenic angles on frontal CXR.\n\n**Key DDx:** Pneumonia (air bronchograms), Atelectasis (linear), Effusion (dependent)"},
+    {id:'s2',ts:Date.now()-4*864e5,title:'Rugger Jersey Spine — Renal Osteodystrophy',cat:'sign',mod:'XR',sys:'MSK',imgs:[],img:null,starred:false,
+     body:"→ Alternating bands of sclerosis (endplates) and lucency (central) in vertebral bodies.\n→ Classic: **secondary hyperparathyroidism** in CKD.\n\n⚠️ Distinguish from Paget's disease and metastases.\n✅ Common in Indian CKD/dialysis patients — important in transplant workup."},
+    {id:'s3',ts:Date.now()-864e5,title:'HINGE — T2 Hypointense Liver Lesions (MRI)',cat:'pearl',mod:'MRI',sys:'Abdomen',imgs:[],img:null,starred:true,
+     body:"**H** — Hemangioma (sclerosed)\n**I** — Iron deposition\n**N** — Neoplasm (HCC, mets)\n**G** — Granuloma (TB, sarcoid)\n**E** — Epithelioid hemangioendothelioma\n\n✅ In India — always consider TB granuloma before rarer diagnoses."},
+  ];save();
+}
+
+load();seed();pickOTD();renderStats();renderNotes();
+
+// ── ANDROID BACK GESTURE ──
+function pushState(){history.pushState({panel:true},'');}
+function anyPanelOpen(){return['vfs','bfs','edOv','ioOv','settingsOv'].some(id=>document.getElementById(id).classList.contains('open'))||document.getElementById('zoom').style.display==='flex';}
+window.addEventListener('popstate',()=>{
+  if(document.getElementById('zoom').style.display==='flex'){document.getElementById('zoom').style.display='none';pushState();return;}
+  if(document.getElementById('cdlgBg').classList.contains('open')){cdlgResolveWrap(false);pushState();return;}
+  if(document.getElementById('edOv').classList.contains('open')){closeEditorSafe();pushState();return;}
+  if(document.getElementById('ioOv').classList.contains('open')){closeIO();pushState();return;}
+  if(document.getElementById('settingsOv').classList.contains('open')){closeSettings();pushState();return;}
+  if(document.getElementById('bfs').classList.contains('open')){closeBrowse();pushState();return;}
+  if(document.getElementById('vfs').classList.contains('open')){closeView();pushState();return;}
+  if(history.state?.panel===undefined)pushState();
+});
+pushState();
+
+const _ov=openView,_ob=openBrowse,_oe=openEditor,_oi=openIO,_os=openSettings;
+openView   =(...a)=>{_ov(...a);pushState();};
+openBrowse =(...a)=>{_ob(...a);pushState();};
+openEditor =(...a)=>{_oe(...a);pushState();};
+openIO     =(...a)=>{_oi(...a);pushState();};
+openSettings=(...a)=>{_os(...a);pushState();};
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
